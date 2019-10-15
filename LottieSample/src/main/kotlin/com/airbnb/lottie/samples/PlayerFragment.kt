@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -16,9 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
-import com.airbnb.lottie.L
-import com.airbnb.lottie.LottieAnimationView
-import com.airbnb.lottie.LottieComposition
+import com.airbnb.lottie.*
 import com.airbnb.lottie.model.KeyPath
 import com.airbnb.lottie.samples.model.CompositionArgs
 import com.airbnb.lottie.samples.views.BackgroundColorView
@@ -110,6 +109,12 @@ class PlayerFragment : BaseMvRxFragment() {
 
         lottieVersionView.text = getString(R.string.lottie_version, com.airbnb.lottie.BuildConfig.VERSION_NAME)
 
+        animationView.setFontAssetDelegate(object : FontAssetDelegate() {
+            override fun fetchFont(fontFamily: String?): Typeface {
+                return Typeface.DEFAULT
+            }
+        })
+
         val args = arguments?.getParcelable<CompositionArgs>(EXTRA_ANIMATION_ARGS)
                 ?: throw IllegalArgumentException("No composition args specified")
         args.animationData?.bgColorInt()?.let {
@@ -148,6 +153,22 @@ class PlayerFragment : BaseMvRxFragment() {
             animationView.setBackgroundResource(if (it) R.drawable.outline else 0)
         }
 
+        hardwareAccelerationToggle.setOnClickListener {
+            val renderMode = if (animationView.layerType == View.LAYER_TYPE_HARDWARE) {
+                RenderMode.SOFTWARE
+            } else {
+                RenderMode.HARDWARE
+            }
+            animationView.setRenderMode(renderMode)
+            hardwareAccelerationToggle.isActivated = animationView.layerType == View.LAYER_TYPE_HARDWARE
+        }
+
+        enableApplyingOpacityToLayers.setOnClickListener {
+            val isApplyingOpacityToLayersEnabled = !enableApplyingOpacityToLayers.isActivated
+            animationView.setApplyingOpacityToLayersEnabled(isApplyingOpacityToLayersEnabled)
+            enableApplyingOpacityToLayers.isActivated = isApplyingOpacityToLayersEnabled
+        }
+
         viewModel.selectSubscribe(PlayerState::controlsVisible) { controlsContainer.animateVisible(it) }
 
         viewModel.selectSubscribe(PlayerState::controlBarVisible) { controlBar.animateVisible(it) }
@@ -179,12 +200,6 @@ class PlayerFragment : BaseMvRxFragment() {
         viewModel.selectSubscribe(PlayerState::trimVisible) {
             trimToggle.isActivated = it
             trimContainer.animateVisible(it)
-        }
-
-        hardwareAccelerationToggle.setOnClickListener { viewModel.toggleHardwareAcceleration() }
-        viewModel.selectSubscribe(PlayerState::useHardwareAcceleration) {
-            hardwareAccelerationToggle.isActivated = it
-            animationView.useHardwareAcceleration(it)
         }
 
         mergePathsToggle.setOnClickListener { viewModel.toggleMergePaths() }
@@ -252,6 +267,11 @@ class PlayerFragment : BaseMvRxFragment() {
             if (animationView.isAnimating) animationView.pauseAnimation() else animationView.resumeAnimation()
             playButton.isActivated = animationView.isAnimating
             postInvalidate()
+        }
+
+        animationView.setOnClickListener {
+            // Click the animation view to re-render it for debugging purposes.
+            animationView.invalidate()
         }
 
         scaleSeekBar.setOnSeekBarChangeListener(OnSeekBarChangeListenerAdapter(
@@ -406,6 +426,7 @@ class PlayerFragment : BaseMvRxFragment() {
         composition ?: return
 
         animationView.setComposition(composition)
+        hardwareAccelerationToggle.isActivated = animationView.layerType == View.LAYER_TYPE_HARDWARE
         animationView.setPerformanceTrackingEnabled(true)
         var renderTimeGraphRange = 4f
         animationView.performanceTracker?.addFrameListener { ms ->
@@ -471,7 +492,7 @@ class PlayerFragment : BaseMvRxFragment() {
         )
     }
 
-    private fun minScale() = 0.15f
+    private fun minScale() = 0.05f
 
     private fun maxScale(): Float = withState(viewModel) { state ->
         val screenWidth = resources.displayMetrics.widthPixels.toFloat()
