@@ -5,6 +5,7 @@ import androidx.collection.LongSparseArray;
 import androidx.collection.SparseArrayCompat;
 import com.airbnb.lottie.model.Font;
 import com.airbnb.lottie.model.FontCharacter;
+import com.airbnb.lottie.model.Marker;
 import com.airbnb.lottie.model.layer.Layer;
 import org.junit.Test;
 
@@ -22,7 +23,7 @@ public class LottieDrawableTest extends BaseTest {
     composition.init(new Rect(), startFrame, endFrame, 1000, new ArrayList<Layer>(),
             new LongSparseArray<Layer>(0), new HashMap<String, List<Layer>>(0),
             new HashMap<String, LottieImageAsset>(0), new SparseArrayCompat<FontCharacter>(0),
-            new HashMap<String, Font>(0));
+            new HashMap<String, Font>(0), new ArrayList<Marker>());
     return composition;
   }
 
@@ -50,7 +51,7 @@ public class LottieDrawableTest extends BaseTest {
     LottieDrawable drawable = new LottieDrawable();
     drawable.setComposition(composition);
     drawable.setMaxProgress(0.25f);
-    assertEquals(121f, drawable.getMaxFrame());
+    assertEquals(121.99f, drawable.getMaxFrame());
   }
 
   @Test
@@ -60,6 +61,6 @@ public class LottieDrawableTest extends BaseTest {
     drawable.setComposition(composition);
     drawable.setMinAndMaxProgress(0.25f, 0.42f);
     assertEquals(121f, drawable.getMinFrame());
-    assertEquals(182f, drawable.getMaxFrame());
+    assertEquals(182.99f, drawable.getMaxFrame());
   }
 }

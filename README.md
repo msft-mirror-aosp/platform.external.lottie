@@ -1,4 +1,4 @@
-# Lottie for Android, [iOS](https://github.com/airbnb/lottie-ios), [React Native](https://github.com/airbnb/lottie-react-native), and [Web](https://github.com/airbnb/lottie-web)
+# Lottie for Android, [iOS](https://github.com/airbnb/lottie-ios), [React Native](https://github.com/airbnb/lottie-react-native), [Web](https://github.com/airbnb/lottie-web), and [Windows](https://aka.ms/lottie)
 [![Build Status](https://travis-ci.org/airbnb/lottie-android.svg?branch=master)](https://travis-ci.org/airbnb/lottie-android)
 
 
@@ -40,3 +40,5 @@ dependencies {
 ```
 The latest Lottie version is:
 ![lottieVersion](https://maven-badges.herokuapp.com/maven-central/com.airbnb.android/lottie/badge.svg)
+
+Lottie 2.8.0 and above only supports projects that have been migrated to [androidx](https://developer.android.com/jetpack/androidx/). For more information, read Google's [migration guide](https://developer.android.com/jetpack/androidx/migrate).
