@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentActivity
 import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.LottieCompositionFactory
 import com.airbnb.lottie.LottieTask
+import com.airbnb.lottie.model.LottieCompositionCache
 import com.airbnb.lottie.samples.model.CompositionArgs
 import com.airbnb.mvrx.*
 import java.io.FileInputStream
@@ -39,9 +40,9 @@ class PlayerViewModel(
         val url = args.url ?: args.animationData?.lottieLink
 
         when {
-            url != null -> LottieCompositionFactory.fromUrl(application, url)
+            url != null -> LottieCompositionFactory.fromUrl(application, url, null)
             args.fileUri != null -> taskForUri(args.fileUri)
-            args.asset != null -> LottieCompositionFactory.fromAsset(application, args.asset)
+            args.asset != null -> LottieCompositionFactory.fromAsset(application, args.asset, null)
             else -> throw IllegalArgumentException("Don't know how to fetch animation for $args")
         }
                 .addListener {
@@ -63,7 +64,7 @@ class PlayerViewModel(
             return LottieTask { throw e }
         }
 
-        return LottieCompositionFactory.fromJsonInputStream(fis, uri.toString())
+        return LottieCompositionFactory.fromJsonInputStream(fis, null)
     }
 
     fun toggleRenderGraphVisible() = setState { copy(renderGraphVisible = !renderGraphVisible) }

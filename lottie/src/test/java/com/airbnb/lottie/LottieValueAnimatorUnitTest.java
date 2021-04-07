@@ -7,6 +7,7 @@ import androidx.collection.LongSparseArray;
 import androidx.collection.SparseArrayCompat;
 import com.airbnb.lottie.model.Font;
 import com.airbnb.lottie.model.FontCharacter;
+import com.airbnb.lottie.model.Marker;
 import com.airbnb.lottie.model.layer.Layer;
 import com.airbnb.lottie.utils.LottieValueAnimator;
 import org.junit.Before;
@@ -62,7 +63,7 @@ public class LottieValueAnimatorUnitTest extends BaseTest {
     composition.init(new Rect(), startFrame, endFrame, 1000, new ArrayList<Layer>(),
             new LongSparseArray<Layer>(0), new HashMap<String, List<Layer>>(0),
             new HashMap<String, LottieImageAsset>(0), new SparseArrayCompat<FontCharacter>(0),
-            new HashMap<String, Font>(0));
+            new HashMap<String, Font>(0), new ArrayList<Marker>());
     return composition;
   }
 
@@ -161,6 +162,23 @@ public class LottieValueAnimatorUnitTest extends BaseTest {
     assertClose(800f, animator.getFrame());
     assertClose(0f, animator.getAnimatedFraction());
     assertClose(0.8f, animator.getAnimatedValueAbsolute());
+  }
+
+  @Test
+  public void testSetFrameIntegrity() {
+    animator.setMinAndMaxFrames(200, 800);
+
+    // setFrame < minFrame should clamp to minFrame
+    animator.setFrame(100);
+    assertEquals(200f, animator.getFrame());
+
+    animator.setFrame(900);
+    assertEquals(800f, animator.getFrame());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMinAndMaxFrameIntegrity() {
+    animator.setMinAndMaxFrames(800, 200);
   }
 
   @Test
