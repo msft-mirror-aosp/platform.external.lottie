@@ -42,4 +42,7 @@ android_library {
     sdk_version: "28",
     min_sdk_version: "16",
     java_version: "1.7",
+    optimize: {
+        proguard_flags_files: ["proguard.flags"],
+    }
 }
