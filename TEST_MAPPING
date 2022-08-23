@@ -8,5 +8,18 @@
                 }
             ]
         }
+    ],
+    "mainline-presubmit": [
+        {
+            "name": "CtsPermission3TestCases[com.google.android.permission.apex]",
+            "options": [
+                {
+                    "include-filter": "android.permission3.cts.LocationAccuracyTest"
+                },
+                {
+                    "exclude-annotation": "android.platform.test.annotations.FlakyTest"
+                }
+            ]
+        }
     ]
 }
