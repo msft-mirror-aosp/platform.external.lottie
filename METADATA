@@ -11,5 +11,6 @@ third_party {
     month: 8
     day: 19
   }
-  license_type: NOTICE
+  license_note: "would be NOTICE save for CC-BY-SA in CODE_OF_CONDUCT.md"
+  license_type: RESTRICTED
 }
