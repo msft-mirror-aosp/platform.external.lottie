@@ -21,11 +21,30 @@ license {
     visibility: [":__subpackages__"],
     license_kinds: [
         "SPDX-license-identifier-Apache-2.0",
-        "SPDX-license-identifier-CC-BY-SA",
     ],
     license_text: [
         "LICENSE",
     ],
+}
+
+license {
+    name: "external_lottie_code_of_conduct_license",
+    visibility: ["//visibility:private"],
+    license_kinds: [
+        "SPDX-license-identifier-CC-BY-SA",
+    ],
+    license_text: [
+        "LICENSE-CC-BY-SA",
+    ],
+}
+
+filegroup {
+    name: "lottie_code_of_conduct",
+    visibility: ["//visibility:private"],
+    srcs: [
+        "CODE_OF_CONDUCT.md",
+    ],
+    licenses: ["external_lottie_code_of_conduct_license"],
 }
 
 android_library {
