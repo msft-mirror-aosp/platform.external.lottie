@@ -52,6 +52,10 @@ android_library {
     srcs: [
         "lottie/src/main/**/*.java",
     ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.permission",
+    ],
     resource_dirs: ["lottie/src/main/res/"],
     static_libs: [
         "androidx.appcompat_appcompat",
