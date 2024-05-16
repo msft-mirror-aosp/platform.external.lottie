@@ -47,6 +47,21 @@ filegroup {
     licenses: ["external_lottie_code_of_conduct_license"],
 }
 
+android_manifest_package_attribute = "\"com.airbnb.lottie\""
+
+genrule {
+    name: "AddPackageAttributeToAndroidManifest",
+    srcs: [
+        "lottie/src/main/AndroidManifest.xml"
+    ],
+    out: [
+        "lottie/src/main/AndroidManifestGen.xml",
+    ],
+    cmd: "sed -E 's/<manifest>/<manifest package="
+    + android_manifest_package_attribute
+    + ">/g' $(in) > $(out)",
+}
+
 android_library {
     name: "lottie",
     srcs: [
@@ -61,7 +76,7 @@ android_library {
         "androidx.appcompat_appcompat",
         "okio-lib",
     ],
-    manifest: "lottie/src/main/AndroidManifest.xml",
+    manifest: ":AddPackageAttributeToAndroidManifest",
     sdk_version: "31",
     min_sdk_version: "19",
     java_version: "1.8",
