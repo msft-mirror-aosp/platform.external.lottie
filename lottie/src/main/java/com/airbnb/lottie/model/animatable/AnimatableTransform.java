@@ -4,6 +4,7 @@ import android.graphics.PointF;
 
 import androidx.annotation.Nullable;
 
+import com.airbnb.lottie.LottieComposition;
 import com.airbnb.lottie.LottieDrawable;
 import com.airbnb.lottie.animation.content.Content;
 import com.airbnb.lottie.animation.content.ModifierContent;
@@ -33,6 +34,8 @@ public class AnimatableTransform implements ModifierContent, ContentModel {
   @Nullable
   private final AnimatableFloatValue endOpacity;
 
+  private boolean autoOrient = false;
+
   public AnimatableTransform() {
     this(null, null, null, null, null, null, null, null, null);
   }
@@ -51,6 +54,13 @@ public class AnimatableTransform implements ModifierContent, ContentModel {
     this.endOpacity = endOpacity;
     this.skew = skew;
     this.skewAngle = skewAngle;
+  }
+
+  /**
+   * This is set as a property of the layer so it is parsed and set separately.
+   */
+  public void setAutoOrient(boolean autoOrient) {
+    this.autoOrient = autoOrient;
   }
 
   @Nullable
@@ -98,13 +108,17 @@ public class AnimatableTransform implements ModifierContent, ContentModel {
     return skewAngle;
   }
 
+  public boolean isAutoOrient() {
+    return autoOrient;
+  }
+
   public TransformKeyframeAnimation createAnimation() {
     return new TransformKeyframeAnimation(this);
   }
 
   @Nullable
   @Override
-  public Content toContent(LottieDrawable drawable, BaseLayer layer) {
+  public Content toContent(LottieDrawable drawable, LottieComposition composition, BaseLayer layer) {
     return null;
   }
 }

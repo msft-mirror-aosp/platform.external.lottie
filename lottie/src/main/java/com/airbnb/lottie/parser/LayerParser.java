@@ -8,6 +8,7 @@ import com.airbnb.lottie.model.animatable.AnimatableFloatValue;
 import com.airbnb.lottie.model.animatable.AnimatableTextFrame;
 import com.airbnb.lottie.model.animatable.AnimatableTextProperties;
 import com.airbnb.lottie.model.animatable.AnimatableTransform;
+import com.airbnb.lottie.model.content.LBlendMode;
 import com.airbnb.lottie.model.content.BlurEffect;
 import com.airbnb.lottie.model.content.ContentModel;
 import com.airbnb.lottie.model.content.Mask;
@@ -27,29 +28,31 @@ public class LayerParser {
   }
 
   private static final JsonReader.Options NAMES = JsonReader.Options.of(
-      "nm", // 0
-      "ind", // 1
-      "refId", // 2
-      "ty", // 3
+      "nm",     // 0
+      "ind",    // 1
+      "refId",  // 2
+      "ty",     // 3
       "parent", // 4
-      "sw", // 5
-      "sh", // 6
-      "sc", // 7
-      "ks", // 8
-      "tt", // 9
+      "sw",     // 5
+      "sh",     // 6
+      "sc",     // 7
+      "ks",     // 8
+      "tt",     // 9
       "masksProperties", // 10
       "shapes", // 11
-      "t", // 12
+      "t",  // 12
       "ef", // 13
       "sr", // 14
       "st", // 15
-      "w", // 16
-      "h", // 17
+      "w",  // 16
+      "h",  // 17
       "ip", // 18
       "op", // 19
       "tm", // 20
       "cl", // 21
-      "hd" // 22
+      "hd", // 22
+      "ao", // 23
+      "bm"  // 24
   );
 
   public static Layer parse(LottieComposition composition) {
@@ -59,7 +62,8 @@ public class LayerParser {
         Layer.LayerType.PRE_COMP, -1, null, Collections.<Mask>emptyList(),
         new AnimatableTransform(), 0, 0, 0, 0, 0,
         bounds.width(), bounds.height(), null, null, Collections.<Keyframe<Float>>emptyList(),
-        Layer.MatteType.NONE, null, false, null, null);
+        Layer.MatteType.NONE, null, false, null, null,
+        LBlendMode.NORMAL);
   }
 
   private static final JsonReader.Options TEXT_NAMES = JsonReader.Options.of(
@@ -82,8 +86,8 @@ public class LayerParser {
     int solidWidth = 0;
     int solidHeight = 0;
     int solidColor = 0;
-    int preCompWidth = 0;
-    int preCompHeight = 0;
+    float preCompWidth = 0;
+    float preCompHeight = 0;
     long parentId = -1;
     float timeStretch = 1f;
     float startFrame = 0f;
@@ -93,8 +97,10 @@ public class LayerParser {
     boolean hidden = false;
     BlurEffect blurEffect = null;
     DropShadowEffect dropShadowEffect = null;
+    boolean autoOrient = false;
 
     Layer.MatteType matteType = Layer.MatteType.NONE;
+    LBlendMode blendMode = LBlendMode.NORMAL;
     AnimatableTransform transform = null;
     AnimatableTextFrame text = null;
     AnimatableTextProperties textProperties = null;
@@ -236,10 +242,10 @@ public class LayerParser {
           startFrame = (float) reader.nextDouble();
           break;
         case 16:
-          preCompWidth = (int) (reader.nextInt() * Utils.dpScale());
+          preCompWidth = (float) (reader.nextDouble() * Utils.dpScale());
           break;
         case 17:
-          preCompHeight = (int) (reader.nextInt() * Utils.dpScale());
+          preCompHeight = (float) (reader.nextDouble() * Utils.dpScale());
           break;
         case 18:
           inFrame = (float) reader.nextDouble();
@@ -255,6 +261,18 @@ public class LayerParser {
           break;
         case 22:
           hidden = reader.nextBoolean();
+          break;
+        case 23:
+          autoOrient = reader.nextInt() == 1;
+          break;
+        case 24:
+          int blendModeIndex = reader.nextInt();
+          if (blendModeIndex >= LBlendMode.values().length) {
+            composition.addWarning("Unsupported Blend Mode: " + blendModeIndex);
+            blendMode = LBlendMode.NORMAL;
+            break;
+          }
+          blendMode = LBlendMode.values()[blendModeIndex];
           break;
         default:
           reader.skipName();
@@ -284,9 +302,15 @@ public class LayerParser {
       composition.addWarning("Convert your Illustrator layers to shape layers.");
     }
 
+    if (autoOrient) {
+      if (transform == null) {
+        transform = new AnimatableTransform();
+      }
+      transform.setAutoOrient(autoOrient);
+    }
     return new Layer(shapes, composition, layerName, layerId, layerType, parentId, refId,
         masks, transform, solidWidth, solidHeight, solidColor, timeStretch, startFrame,
         preCompWidth, preCompHeight, text, textProperties, inOutKeyframes, matteType,
-        timeRemapping, hidden, blurEffect, dropShadowEffect);
+        timeRemapping, hidden, blurEffect, dropShadowEffect, blendMode);
   }
 }

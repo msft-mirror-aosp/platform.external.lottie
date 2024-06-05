@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.util.Log;
 
 import androidx.annotation.FloatRange;
 import androidx.annotation.Nullable;
@@ -32,6 +33,7 @@ public class CompositionLayer extends BaseLayer {
 
   @Nullable private Boolean hasMatte;
   @Nullable private Boolean hasMasks;
+  private float progress;
 
   private boolean clipToCompositionBounds = true;
 
@@ -142,6 +144,8 @@ public class CompositionLayer extends BaseLayer {
   }
 
   @Override public void setProgress(@FloatRange(from = 0f, to = 1f) float progress) {
+    L.beginSection("CompositionLayer#setProgress");
+    this.progress = progress;
     super.setProgress(progress);
     if (timeRemapping != null) {
       // The duration has 0.01 frame offset to show end of animation properly.
@@ -162,6 +166,11 @@ public class CompositionLayer extends BaseLayer {
     for (int i = layers.size() - 1; i >= 0; i--) {
       layers.get(i).setProgress(progress);
     }
+    L.endSection("CompositionLayer#setProgress");
+  }
+
+  public float getProgress() {
+    return progress;
   }
 
   public boolean hasMasks() {

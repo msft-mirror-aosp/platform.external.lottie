@@ -23,6 +23,9 @@ import com.airbnb.lottie.utils.Utils
  *                  is still playing.
  * @param restartOnPlay If isPlaying switches from false to true, restartOnPlay determines whether
  *                      the progress and iteration gets reset.
+ * @param reverseOnRepeat Defines what this animation should do when it reaches the end. This setting
+ *                        is applied only when [iterations] is either greater than 0 or [LottieConstants.IterateForever].
+ *                        Defaults to `false`.
  * @param clipSpec A [LottieClipSpec] that specifies the bound the animation playback
  *                 should be clipped to.
  * @param speed The speed the animation should play at. Numbers larger than one will speed it up.
@@ -42,11 +45,13 @@ fun animateLottieCompositionAsState(
     composition: LottieComposition?,
     isPlaying: Boolean = true,
     restartOnPlay: Boolean = true,
+    reverseOnRepeat: Boolean = false,
     clipSpec: LottieClipSpec? = null,
     speed: Float = 1f,
     iterations: Int = 1,
     cancellationBehavior: LottieCancellationBehavior = LottieCancellationBehavior.Immediately,
     ignoreSystemAnimatorScale: Boolean = false,
+    useCompositionFrameRate: Boolean = false,
 ): LottieAnimationState {
     require(iterations > 0) { "Iterations must be a positive number ($iterations)." }
     require(speed.isFinite()) { "Speed must be a finite number. It is $speed." }
@@ -73,11 +78,13 @@ fun animateLottieCompositionAsState(
         animatable.animate(
             composition,
             iterations = iterations,
+            reverseOnRepeat = reverseOnRepeat,
             speed = actualSpeed,
             clipSpec = clipSpec,
             initialProgress = animatable.progress,
             continueFromPreviousAnimate = false,
             cancellationBehavior = cancellationBehavior,
+            useCompositionFrameRate = useCompositionFrameRate,
         )
     }
 
