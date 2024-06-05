@@ -1,25 +1,28 @@
 package com.airbnb.lottie.manager;
+
+import android.app.Application;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.view.View;
+
+import androidx.annotation.Nullable;
 
 import com.airbnb.lottie.ImageAssetDelegate;
 import com.airbnb.lottie.LottieImageAsset;
 import com.airbnb.lottie.utils.Logger;
 import com.airbnb.lottie.utils.Utils;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ImageAssetManager {
   private static final Object bitmapHashLock = new Object();
-  private final Context context;
+  @Nullable private final Context context;
   private final String imagesFolder;
   @Nullable private ImageAssetDelegate delegate;
   private final Map<String, LottieImageAsset> imageAssets;
@@ -31,16 +34,14 @@ public class ImageAssetManager {
     } else {
       this.imagesFolder = imagesFolder;
     }
+    this.imageAssets = imageAssets;
+    setDelegate(delegate);
     if (!(callback instanceof View)) {
-      Logger.warning("LottieDrawable must be inside of a view for images to work.");
-      this.imageAssets = new HashMap<>();
       context = null;
       return;
     }
 
-    context = ((View) callback).getContext();
-    this.imageAssets = imageAssets;
-    setDelegate(delegate);
+    context = ((View) callback).getContext().getApplicationContext();
   }
 
   public void setDelegate(@Nullable ImageAssetDelegate assetDelegate) {
@@ -84,6 +85,12 @@ public class ImageAssetManager {
       }
       return bitmap;
     }
+    Context context = this.context;
+    if (context == null) {
+      // If there is no context, the image has to be embedded or provided via
+      // a delegate.
+      return null;
+    }
 
     String filename = asset.getFileName();
     BitmapFactory.Options opts = new BitmapFactory.Options();
@@ -118,7 +125,11 @@ public class ImageAssetManager {
     try {
       bitmap = BitmapFactory.decodeStream(is, null, opts);
     } catch (IllegalArgumentException e) {
-      Logger.warning("Unable to decode image.", e);
+      Logger.warning("Unable to decode image `" + id + "`.", e);
+      return null;
+    }
+    if (bitmap == null) {
+      Logger.warning("Decoded image `" + id + "` is null.");
       return null;
     }
     bitmap = Utils.resizeBitmapIfNeeded(bitmap, asset.getWidth(), asset.getHeight());
@@ -126,7 +137,8 @@ public class ImageAssetManager {
   }
 
   public boolean hasSameContext(Context context) {
-    return context == null && this.context == null || this.context.equals(context);
+    Context contextToCompare = this.context instanceof Application ? context.getApplicationContext() : context;
+    return contextToCompare == this.context;
   }
 
   private Bitmap putBitmap(String key, @Nullable Bitmap bitmap) {
