@@ -47,6 +47,21 @@ filegroup {
     licenses: ["external_lottie_code_of_conduct_license"],
 }
 
+android_manifest_package_attribute = "\"com.airbnb.lottie\""
+
+genrule {
+    name: "AddPackageAttributeToAndroidManifest",
+    srcs: [
+        "lottie/src/main/AndroidManifest.xml"
+    ],
+    out: [
+        "lottie/src/main/AndroidManifestGen.xml",
+    ],
+    cmd: "sed -E 's/<manifest>/<manifest package="
+    + android_manifest_package_attribute
+    + ">/g' $(in) > $(out)",
+}
+
 android_library {
     name: "lottie",
     srcs: [
@@ -61,28 +76,30 @@ android_library {
         "androidx.appcompat_appcompat",
         "okio-lib",
     ],
-    manifest: "lottie/src/main/AndroidManifest.xml",
+    manifest: ":AddPackageAttributeToAndroidManifest",
     sdk_version: "31",
     min_sdk_version: "19",
     java_version: "1.8",
     optimize: {
         proguard_flags_files: ["proguard.flags"],
-    }
+    },
+    // https://github.com/airbnb/lottie-android/issues/2502
+    errorprone: {
+        enabled: false,
+    },
 }
 
-android_library {
+java_library {
     name: "lottie_compose",
     srcs: [
         "lottie-compose/src/main/java/**/*.kt",
     ],
-    resource_dirs: ["lottie/src/main/res/"],
     static_libs: [
         "lottie",
         "androidx.compose.foundation_foundation",
         "androidx.compose.runtime_runtime",
         "androidx.compose.ui_ui",
     ],
-    manifest: "lottie-compose/src/main/AndroidManifest.xml",
     sdk_version: "current",
     min_sdk_version: "21",
     kotlincflags: [
