@@ -18,12 +18,19 @@ public class LottieConfig {
   @Nullable final LottieNetworkFetcher networkFetcher;
   @Nullable final LottieNetworkCacheProvider cacheProvider;
   final boolean enableSystraceMarkers;
+  final boolean enableNetworkCache;
+  final boolean disablePathInterpolatorCache;
+  final AsyncUpdates defaultAsyncUpdates;
 
   private LottieConfig(@Nullable LottieNetworkFetcher networkFetcher, @Nullable LottieNetworkCacheProvider cacheProvider,
-      boolean enableSystraceMarkers) {
+      boolean enableSystraceMarkers, boolean enableNetworkCache, boolean disablePathInterpolatorCache,
+      AsyncUpdates defaultAsyncUpdates) {
     this.networkFetcher = networkFetcher;
     this.cacheProvider = cacheProvider;
     this.enableSystraceMarkers = enableSystraceMarkers;
+    this.enableNetworkCache = enableNetworkCache;
+    this.disablePathInterpolatorCache = disablePathInterpolatorCache;
+    this.defaultAsyncUpdates = defaultAsyncUpdates;
   }
 
   public static final class Builder {
@@ -33,6 +40,9 @@ public class LottieConfig {
     @Nullable
     private LottieNetworkCacheProvider cacheProvider;
     private boolean enableSystraceMarkers = false;
+    private boolean enableNetworkCache = true;
+    private boolean disablePathInterpolatorCache = true;
+    private AsyncUpdates defaultAsyncUpdates = AsyncUpdates.AUTOMATIC;
 
     /**
      * Lottie has a default network fetching stack built on {@link java.net.HttpURLConnection}. However, if you would like to hook into your own
@@ -98,9 +108,43 @@ public class LottieConfig {
       return this;
     }
 
+    /**
+     * Disable this if you want to completely disable internal Lottie cache for retrieving network animations.
+     * Internal network cache is enabled by default.
+     */
+    @NonNull
+    public Builder setEnableNetworkCache(boolean enable) {
+      enableNetworkCache = enable;
+      return this;
+    }
+
+    /**
+     * When parsing animations, Lottie has a path interpolator cache. This cache allows Lottie to reuse PathInterpolators
+     * across an animation. This is desirable in most cases. However, when shared across screenshot tests, it can cause slight
+     * deviations in the rendering due to underlying approximations in the PathInterpolator.
+     *
+     * The cache is enabled by default and should probably only be disabled for screenshot tests.
+     */
+    @NonNull
+    public Builder setDisablePathInterpolatorCache(boolean disable) {
+      disablePathInterpolatorCache = disable;
+      return this;
+    }
+
+    /**
+     * Sets the default value for async updates.
+     * @see LottieDrawable#setAsyncUpdates(AsyncUpdates)
+     */
+    @NonNull
+    public Builder setDefaultAsyncUpdates(AsyncUpdates asyncUpdates) {
+      defaultAsyncUpdates = asyncUpdates;
+      return this;
+    }
+
     @NonNull
     public LottieConfig build() {
-      return new LottieConfig(networkFetcher, cacheProvider, enableSystraceMarkers);
+      return new LottieConfig(networkFetcher, cacheProvider, enableSystraceMarkers, enableNetworkCache, disablePathInterpolatorCache,
+          defaultAsyncUpdates);
     }
   }
 }
