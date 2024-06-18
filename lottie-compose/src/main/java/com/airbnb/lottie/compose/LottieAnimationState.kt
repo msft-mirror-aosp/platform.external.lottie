@@ -25,9 +25,13 @@ interface LottieAnimationState : State<Float> {
 
     val iterations: Int
 
+    val reverseOnRepeat: Boolean
+
     val clipSpec: LottieClipSpec?
 
     val speed: Float
+
+    val useCompositionFrameRate: Boolean
 
     val composition: LottieComposition?
 
