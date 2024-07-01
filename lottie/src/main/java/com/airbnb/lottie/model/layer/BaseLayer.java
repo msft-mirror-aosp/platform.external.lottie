@@ -28,6 +28,7 @@ import com.airbnb.lottie.animation.keyframe.TransformKeyframeAnimation;
 import com.airbnb.lottie.model.KeyPath;
 import com.airbnb.lottie.model.KeyPathElement;
 import com.airbnb.lottie.model.content.BlurEffect;
+import com.airbnb.lottie.model.content.LBlendMode;
 import com.airbnb.lottie.model.content.Mask;
 import com.airbnb.lottie.model.content.ShapeData;
 import com.airbnb.lottie.parser.DropShadowEffect;
@@ -55,7 +56,7 @@ public abstract class BaseLayer
       CompositionLayer compositionLayer, Layer layerModel, LottieDrawable drawable, LottieComposition composition) {
     switch (layerModel.getLayerType()) {
       case SHAPE:
-        return new ShapeLayer(drawable, layerModel, compositionLayer);
+        return new ShapeLayer(drawable, layerModel, compositionLayer, composition);
       case PRE_COMP:
         return new CompositionLayer(drawable, layerModel,
             composition.getPrecomps(layerModel.getRefId()), composition);
@@ -241,9 +242,18 @@ public abstract class BaseLayer
       matrix.preConcat(parentLayers.get(i).transform.getMatrix());
     }
     L.endSection("Layer#parentMatrix");
-    int opacity = transform.getOpacity() == null ? 100 : transform.getOpacity().getValue();
-    int alpha = (int)
-        ((parentAlpha / 255f * (float) opacity / 100f) * 255);
+    // It is unclear why but getting the opacity here would sometimes NPE.
+    // The extra code here is designed to avoid this.
+    // https://github.com/airbnb/lottie-android/issues/2083
+    int opacity = 100;
+    BaseKeyframeAnimation<?, Integer> opacityAnimation = transform.getOpacity();
+    if (opacityAnimation != null) {
+      Integer opacityValue = opacityAnimation.getValue();
+      if (opacityValue != null) {
+        opacity = opacityValue;
+      }
+    }
+    int alpha = (int) ((parentAlpha / 255f * (float) opacity / 100f) * 255);
     if (!hasMatteOnThisLayer() && !hasMasksOnThisLayer()) {
       matrix.preConcat(transform.getMatrix());
       L.beginSection("Layer#drawLayer");
@@ -562,22 +572,34 @@ public abstract class BaseLayer
   }
 
   void setProgress(@FloatRange(from = 0f, to = 1f) float progress) {
+    L.beginSection("BaseLayer#setProgress");
     // Time stretch should not be applied to the layer transform.
+    L.beginSection("BaseLayer#setProgress.transform");
     transform.setProgress(progress);
+    L.endSection("BaseLayer#setProgress.transform");
     if (mask != null) {
+      L.beginSection("BaseLayer#setProgress.mask");
       for (int i = 0; i < mask.getMaskAnimations().size(); i++) {
         mask.getMaskAnimations().get(i).setProgress(progress);
       }
+      L.endSection("BaseLayer#setProgress.mask");
     }
     if (inOutAnimation != null) {
+      L.beginSection("BaseLayer#setProgress.inout");
       inOutAnimation.setProgress(progress);
+      L.endSection("BaseLayer#setProgress.inout");
     }
     if (matteLayer != null) {
+      L.beginSection("BaseLayer#setProgress.matte");
       matteLayer.setProgress(progress);
+      L.endSection("BaseLayer#setProgress.matte");
     }
+    L.beginSection("BaseLayer#setProgress.animations." + animations.size());
     for (int i = 0; i < animations.size(); i++) {
       animations.get(i).setProgress(progress);
     }
+    L.endSection("BaseLayer#setProgress.animations." + animations.size());
+    L.endSection("BaseLayer#setProgress");
   }
 
   private void buildParentLayerListIfNeeded() {
@@ -605,6 +627,10 @@ public abstract class BaseLayer
   @Nullable
   public BlurEffect getBlurEffect() {
     return layerModel.getBlurEffect();
+  }
+
+  public LBlendMode getBlendMode() {
+    return layerModel.getBlendMode();
   }
 
   public BlurMaskFilter getBlurMaskFilter(float radius) {
