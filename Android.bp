@@ -78,7 +78,7 @@ android_library {
     ],
     manifest: ":AddPackageAttributeToAndroidManifest",
     sdk_version: "31",
-    min_sdk_version: "19",
+    min_sdk_version: "21",
     java_version: "1.8",
     optimize: {
         proguard_flags_files: ["proguard.flags"],
