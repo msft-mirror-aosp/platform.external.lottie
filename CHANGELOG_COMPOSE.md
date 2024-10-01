@@ -1,3 +1,10 @@
+# 6.5.2
+* Add support for new reduced motion settings ([#2543](https://github.com/airbnb/lottie-android/pull/2543))
+
+# 6.4.1
+### New Features
+* Add support for tgs files ([#2501](https://github.com/airbnb/lottie-android/pull/2501))
+
 # 6.4.0
 ### New Features
 * Add safe mode ([#2455](https://github.com/airbnb/lottie-android/pull/2455))

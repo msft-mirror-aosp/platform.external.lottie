@@ -260,8 +260,6 @@ import java.util.zip.ZipInputStream;
     }
 
     ta.recycle();
-
-    lottieDrawable.setSystemAnimationsAreEnabled(Utils.getAnimationScale(getContext()) != 0f);
   }
 
   @Override public void setImageResource(int resId) {
@@ -377,7 +375,10 @@ import java.util.zip.ZipInputStream;
    * Defaults to false.
    *
    * @param ignore if true animations will run even when they are disabled in the system settings.
+   * @deprecated Use {@link com.airbnb.lottie.configurations.reducemotion.IgnoreDisabledSystemAnimationsOption}
+   * instead and set them on the {@link LottieConfig}
    */
+  @Deprecated
   public void setIgnoreDisabledSystemAnimations(boolean ignore) {
     lottieDrawable.setIgnoreDisabledSystemAnimations(ignore);
   }
@@ -403,14 +404,32 @@ import java.util.zip.ZipInputStream;
    * instead of using merge paths.
    */
   public void enableMergePathsForKitKatAndAbove(boolean enable) {
-    lottieDrawable.enableMergePathsForKitKatAndAbove(enable);
+    lottieDrawable.enableFeatureFlag(LottieFeatureFlag.MergePathsApi19, enable);
   }
 
   /**
    * Returns whether merge paths are enabled for KitKat and above.
    */
   public boolean isMergePathsEnabledForKitKatAndAbove() {
-    return lottieDrawable.isMergePathsEnabledForKitKatAndAbove();
+    return lottieDrawable.isFeatureFlagEnabled(LottieFeatureFlag.MergePathsApi19);
+  }
+
+  /**
+   * Enable the specified feature for this LottieView.
+   * <p>
+   * Features guarded by LottieFeatureFlags are experimental or only supported by a subset of API levels.
+   * Please ensure that the animation supported by the enabled feature looks acceptable across all
+   * targeted API levels.
+   */
+  public void enableFeatureFlag(LottieFeatureFlag flag, boolean enable) {
+    lottieDrawable.enableFeatureFlag(flag, enable);
+  }
+
+  /**
+   * Returns whether the specified feature is enabled.
+   */
+  public boolean isFeatureFlagEnabled(LottieFeatureFlag flag) {
+    return lottieDrawable.isFeatureFlagEnabled(flag);
   }
 
   /**
