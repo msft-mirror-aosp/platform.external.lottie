@@ -33,6 +33,7 @@ import androidx.annotation.RequiresApi;
 import androidx.annotation.RestrictTo;
 
 import com.airbnb.lottie.animation.LPaint;
+import com.airbnb.lottie.configurations.reducemotion.ReducedMotionMode;
 import com.airbnb.lottie.manager.FontAssetManager;
 import com.airbnb.lottie.manager.ImageAssetManager;
 import com.airbnb.lottie.model.Font;
@@ -142,7 +143,7 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
   FontAssetDelegate fontAssetDelegate;
   @Nullable
   TextDelegate textDelegate;
-  private boolean enableMergePaths;
+  private final LottieFeatureFlags lottieFeatureFlags = new LottieFeatureFlags();
   private boolean maintainOriginalImageBounds = false;
   private boolean clipToCompositionBounds = true;
   @Nullable
@@ -285,34 +286,51 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
     return compositionLayer != null && compositionLayer.hasMatte();
   }
 
+  @Deprecated
   public boolean enableMergePathsForKitKatAndAbove() {
-    return enableMergePaths;
+    return lottieFeatureFlags.isFlagEnabled(LottieFeatureFlag.MergePathsApi19);
   }
 
   /**
    * Enable this to get merge path support for devices running KitKat (19) and above.
+   * Deprecated: Use enableFeatureFlag(LottieFeatureFlags.FeatureFlag.MergePathsApi19, enable)
    * <p>
    * Merge paths currently don't work if the the operand shape is entirely contained within the
    * first shape. If you need to cut out one shape from another shape, use an even-odd fill type
    * instead of using merge paths.
    */
+  @Deprecated
   public void enableMergePathsForKitKatAndAbove(boolean enable) {
-    if (enableMergePaths == enable) {
-      return;
-    }
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-      Logger.warning("Merge paths are not supported pre-Kit Kat.");
-      return;
-    }
-    enableMergePaths = enable;
-    if (composition != null) {
+    boolean changed = lottieFeatureFlags.enableFlag(LottieFeatureFlag.MergePathsApi19, enable);
+    if (composition != null && changed) {
       buildCompositionLayer();
     }
   }
 
+  /**
+   * @deprecated Replaced by {@link #enableFeatureFlag(LottieFeatureFlag, boolean)}
+   */
+  @Deprecated
   public boolean isMergePathsEnabledForKitKatAndAbove() {
-    return enableMergePaths;
+    return lottieFeatureFlags.isFlagEnabled(LottieFeatureFlag.MergePathsApi19);
+  }
+
+  /**
+   * Enable the specified feature for this drawable.
+   * <p>
+   * Features guarded by LottieFeatureFlags are experimental or only supported by a subset of API levels.
+   * Please ensure that the animation supported by the enabled feature looks acceptable across all
+   * targeted API levels.
+   */
+  public void enableFeatureFlag(LottieFeatureFlag flag, boolean enable) {
+    boolean changed = lottieFeatureFlags.enableFlag(flag, enable);
+    if (composition != null && changed) {
+      buildCompositionLayer();
+    }
+  }
+
+  public boolean isFeatureFlagEnabled(LottieFeatureFlag flag) {
+    return lottieFeatureFlags.isFlagEnabled(flag);
   }
 
   /**
@@ -687,7 +705,9 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
       if (asyncUpdatesEnabled) {
         setProgressDrawLock.acquire();
       }
-      L.beginSection("Drawable#draw");
+      if (L.isTraceEnabled()) {
+        L.beginSection("Drawable#draw");
+      }
 
       if (asyncUpdatesEnabled && shouldSetProgressBeforeDrawing()) {
         setProgress(animator.getAnimatedValueAbsolute());
@@ -715,7 +735,9 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
     } catch (InterruptedException e) {
       // Do nothing.
     } finally {
-      L.endSection("Drawable#draw");
+      if (L.isTraceEnabled()) {
+        L.endSection("Drawable#draw");
+      }
       if (asyncUpdatesEnabled) {
         setProgressDrawLock.release();
         if (compositionLayer.getProgress() != animator.getAnimatedValueAbsolute()) {
@@ -801,7 +823,7 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
     }
 
     computeRenderMode();
-    if (animationsEnabled() || getRepeatCount() == 0) {
+    if (animationsEnabled(getContext()) || getRepeatCount() == 0) {
       if (isVisible()) {
         animator.playAnimation();
         onVisibleAction = OnVisibleAction.NONE;
@@ -809,7 +831,7 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
         onVisibleAction = OnVisibleAction.PLAY;
       }
     }
-    if (!animationsEnabled()) {
+    if (!animationsEnabled(getContext())) {
       Marker markerForAnimationsDisabled = getMarkerForAnimationsDisabled();
       if (markerForAnimationsDisabled != null) {
         setFrame((int) markerForAnimationsDisabled.startFrame);
@@ -831,7 +853,8 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
    *
    * @return The first non-null marker from the list of allowed reduced motion markers, or null if no such marker is found.
    */
-  private Marker getMarkerForAnimationsDisabled() {
+  @RestrictTo(RestrictTo.Scope.LIBRARY)
+  public Marker getMarkerForAnimationsDisabled() {
     Marker marker = null;
     for (String markerName : ALLOWED_REDUCED_MOTION_MARKERS) {
       marker = composition.getMarker(markerName);
@@ -863,7 +886,7 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
     }
 
     computeRenderMode();
-    if (animationsEnabled() || getRepeatCount() == 0) {
+    if (animationsEnabled(getContext()) || getRepeatCount() == 0) {
       if (isVisible()) {
         animator.resumeAnimation();
         onVisibleAction = OnVisibleAction.NONE;
@@ -871,7 +894,7 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
         onVisibleAction = OnVisibleAction.RESUME;
       }
     }
-    if (!animationsEnabled()) {
+    if (!animationsEnabled(getContext())) {
       setFrame((int) (getSpeed() < 0 ? getMinFrame() : getMaxFrame()));
       animator.endAnimation();
       if (!isVisible()) {
@@ -1137,9 +1160,13 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
       lazyCompositionTasks.add(c -> setProgress(progress));
       return;
     }
-    L.beginSection("Drawable#setProgress");
+    if (L.isTraceEnabled()) {
+      L.beginSection("Drawable#setProgress");
+    }
     animator.setFrame(composition.getFrameForProgress(progress));
-    L.endSection("Drawable#setProgress");
+    if (L.isTraceEnabled()) {
+      L.endSection("Drawable#setProgress");
+    }
   }
 
   /**
@@ -1218,8 +1245,12 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
     }
   }
 
-  private boolean animationsEnabled() {
-    return systemAnimationsEnabled || ignoreSystemAnimationsDisabled;
+  public boolean animationsEnabled(@Nullable Context context) {
+    if (ignoreSystemAnimationsDisabled) {
+      return true;
+    }
+    return systemAnimationsEnabled &&
+        L.getReducedMotionOption().getCurrentReducedMotionMode(context) == ReducedMotionMode.STANDARD_MOTION;
   }
 
   /**
@@ -1231,7 +1262,10 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
    * - reducedMotion
    * - reduced_motion
    * - reduced-motion
+   *
+   * @deprecated Use {@link com.airbnb.lottie.configurations.reducemotion.ReducedMotionOption} instead and set them on the {@link LottieConfig}
    */
+  @Deprecated
   public void setSystemAnimationsAreEnabled(Boolean areEnabled) {
     systemAnimationsEnabled = areEnabled;
   }
@@ -1244,7 +1278,10 @@ public class LottieDrawable extends Drawable implements Drawable.Callback, Anima
    * Defaults to false.
    *
    * @param ignore if true animations will run even when they are disabled in the system settings.
+   * @deprecated Use {@link com.airbnb.lottie.configurations.reducemotion.IgnoreDisabledSystemAnimationsOption}
+   * instead and set them on the {@link LottieConfig}
    */
+  @Deprecated
   public void setIgnoreDisabledSystemAnimations(boolean ignore) {
     ignoreSystemAnimationsDisabled = ignore;
   }
