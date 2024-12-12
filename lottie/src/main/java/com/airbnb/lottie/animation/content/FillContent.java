@@ -11,7 +11,6 @@ import android.graphics.Path;
 import android.graphics.RectF;
 
 import androidx.annotation.Nullable;
-import androidx.core.graphics.PaintCompat;
 
 import com.airbnb.lottie.L;
 import com.airbnb.lottie.LottieDrawable;
@@ -25,6 +24,7 @@ import com.airbnb.lottie.model.KeyPath;
 import com.airbnb.lottie.model.content.ShapeFill;
 import com.airbnb.lottie.model.layer.BaseLayer;
 import com.airbnb.lottie.utils.MiscUtils;
+import com.airbnb.lottie.utils.Utils;
 import com.airbnb.lottie.value.LottieValueCallback;
 
 import java.util.ArrayList;
@@ -68,8 +68,6 @@ public class FillContent
       return;
     }
 
-    PaintCompat.setBlendMode(paint, layer.getBlendMode().toNativeBlendMode());
-
     path.setFillType(fill.getFillType());
 
     colorAnimation = fill.getColor().createAnimation();
@@ -101,7 +99,9 @@ public class FillContent
     if (hidden) {
       return;
     }
-    L.beginSection("FillContent#draw");
+    if (L.isTraceEnabled()) {
+      L.beginSection("FillContent#draw");
+    }
     int color = ((ColorKeyframeAnimation) this.colorAnimation).getIntValue();
     int alpha = (int) ((parentAlpha / 255f * opacityAnimation.getValue() / 100f) * 255);
     paint.setColor((clamp(alpha, 0, 255) << 24) | (color & 0xFFFFFF));
@@ -121,7 +121,7 @@ public class FillContent
       blurMaskFilterRadius = blurRadius;
     }
     if (dropShadowAnimation != null) {
-      dropShadowAnimation.applyTo(paint);
+      dropShadowAnimation.applyTo(paint, parentMatrix, Utils.mixOpacities(parentAlpha, alpha));
     }
 
     path.reset();
@@ -131,7 +131,9 @@ public class FillContent
 
     canvas.drawPath(path, paint);
 
-    L.endSection("FillContent#draw");
+    if (L.isTraceEnabled()) {
+      L.endSection("FillContent#draw");
+    }
   }
 
   @Override public void getBounds(RectF outBounds, Matrix parentMatrix, boolean applyParents) {

@@ -1,3 +1,37 @@
+# 6.5.2
+### Bugs Fixed
+* Fix a NPE when running Lottie in instrumentation tests ([#2546](https://github.com/airbnb/lottie-android/pull/2546))
+* Add support for new reduced motion options in Compose ([#2542](https://github.com/airbnb/lottie-android/pull/2542))
+
+# 6.5.1
+### Bugs Fixed
+* Fix value callback is not called for PathKeyframeAnimation ([#2540](https://github.com/airbnb/lottie-android/pull/2540))
+* Fix shadow softness accuracy ([#2541](https://github.com/airbnb/lottie-android/pull/2541))
+* Add a global configuration to control reduced motion settings for a11y ([#2536](https://github.com/airbnb/lottie-android/pull/2536))
+* Fix a NPE on ImageAssetManager#getContext ([#2532](https://github.com/airbnb/lottie-android/pull/2532))
+* Improve strokes with skew ([#2531](https://github.com/airbnb/lottie-android/pull/2531))
+* LottieCompositionFactory: Avoid NPE when animation contains a Font Family and Context is null ([#2530](https://github.com/airbnb/lottie-android/pull/2530))
+* LottieCompositionFactory: Add factory methods that take an okio Source ([#2527](https://github.com/airbnb/lottie-android/pull/2527))
+* LottieCompositionFactory#fromZipStreamSyncInternal close FileOutputStream ([#2548](https://github.com/airbnb/lottie-android/pull/2548))
+
+# 6.5.0
+### New Features
+* Apply blend modes to layers and add Multiply ([#2519](https://github.com/airbnb/lottie-android/pull/2519))
+* Add initial support for text range selectors ([#2518](https://github.com/airbnb/lottie-android/pull/2518))
+* Add a new feature flag API to allow for opting into newer platform features ([#2512](https://github.com/airbnb/lottie-android/pull/2512))
+* Add an API to get the unscaled width/height of a composition ([#2514](https://github.com/airbnb/lottie-android/pull/2514))
+
+### Bugs Fixes
+* Improve the accuracy of drop shadow position and softness ([#2523](https://github.com/airbnb/lottie-android/pull/2523))
+* Treat appcompat as an API dependency ([#2507](https://github.com/airbnb/lottie-android/pull/2507))
+
+# 6.4.1
+### Bugs Fixed
+* Scale base64 encoded bitmaps ([#2501](https://github.com/airbnb/lottie-android/pull/2501))
+* Prevent systrace strings from getting created when systrace is off ([#2493](https://github.com/airbnb/lottie-android/pull/2493))
+* Allow missing end values for integer animations ([#2487](https://github.com/airbnb/lottie-android/pull/2487))
+* Add an extra null check in BaseKeyframeAnimation ([#2486](https://github.com/airbnb/lottie-android/pull/2486))
+
 # 6.4.0
 ### New Features
 * Add support for reduced motion marker names ([#2451](https://github.com/airbnb/lottie-android/pull/2451))
