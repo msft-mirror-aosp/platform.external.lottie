@@ -32,6 +32,7 @@ import com.airbnb.lottie.model.content.GradientFill;
 import com.airbnb.lottie.model.content.GradientType;
 import com.airbnb.lottie.model.layer.BaseLayer;
 import com.airbnb.lottie.utils.MiscUtils;
+import com.airbnb.lottie.utils.Utils;
 import com.airbnb.lottie.value.LottieValueCallback;
 
 import java.util.ArrayList;
@@ -117,7 +118,9 @@ public class GradientFillContent
     if (hidden) {
       return;
     }
-    L.beginSection("GradientFillContent#draw");
+    if (L.isTraceEnabled()) {
+      L.beginSection("GradientFillContent#draw");
+    }
     path.reset();
     for (int i = 0; i < paths.size(); i++) {
       path.addPath(paths.get(i).getPath(), parentMatrix);
@@ -148,15 +151,18 @@ public class GradientFillContent
       }
       blurMaskFilterRadius = blurRadius;
     }
-    if (dropShadowAnimation != null) {
-      dropShadowAnimation.applyTo(paint);
-    }
 
     int alpha = (int) ((parentAlpha / 255f * opacityAnimation.getValue() / 100f) * 255);
     paint.setAlpha(clamp(alpha, 0, 255));
 
+    if (dropShadowAnimation != null) {
+      dropShadowAnimation.applyTo(paint, parentMatrix, Utils.mixOpacities(parentAlpha, alpha));
+    }
+
     canvas.drawPath(path, paint);
-    L.endSection("GradientFillContent#draw");
+    if (L.isTraceEnabled()) {
+      L.endSection("GradientFillContent#draw");
+    }
   }
 
   @Override public void getBounds(RectF outBounds, Matrix parentMatrix, boolean applyParents) {

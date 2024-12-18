@@ -17,10 +17,12 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ScaleFactor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import com.airbnb.lottie.AsyncUpdates
 import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.LottieDrawable
+import com.airbnb.lottie.LottieFeatureFlag
 import com.airbnb.lottie.RenderMode
 import kotlin.math.roundToInt
 
@@ -100,6 +102,7 @@ fun LottieAnimation(
     if (composition == null || composition.duration == 0f) return Box(modifier)
 
     val bounds = composition.bounds
+    val context = LocalContext.current
     Canvas(
         modifier = modifier
             .lottieSize(bounds.width(), bounds.height())
@@ -114,7 +117,7 @@ fun LottieAnimation(
             matrix.preTranslate(translation.x.toFloat(), translation.y.toFloat())
             matrix.preScale(scale.scaleX, scale.scaleY)
 
-            drawable.enableMergePathsForKitKatAndAbove(enableMergePaths)
+            drawable.enableFeatureFlag(LottieFeatureFlag.MergePathsApi19, enableMergePaths)
             drawable.setSafeMode(safeMode)
             drawable.renderMode = renderMode
             drawable.asyncUpdates = asyncUpdates
@@ -130,7 +133,12 @@ fun LottieAnimation(
             drawable.maintainOriginalImageBounds = maintainOriginalImageBounds
             drawable.clipToCompositionBounds = clipToCompositionBounds
             drawable.clipTextToBoundingBox = clipTextToBoundingBox
-            drawable.progress = progress()
+            val markerForAnimationsDisabled = drawable.markerForAnimationsDisabled
+            if (!drawable.animationsEnabled(context) && markerForAnimationsDisabled != null) {
+                drawable.progress = markerForAnimationsDisabled.startFrame
+            } else {
+                drawable.progress = progress()
+            }
             drawable.setBounds(0, 0, bounds.width(), bounds.height())
             drawable.draw(canvas.nativeCanvas, matrix)
         }

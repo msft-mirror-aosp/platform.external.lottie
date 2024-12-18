@@ -21,5 +21,18 @@
                 }
             ]
         }
+    ],
+    "permission-mainline-presubmit": [
+        {
+            "name": "CtsPermissionUiTestCases",
+            "options": [
+                {
+                    "include-filter": "android.permissionui.cts.LocationAccuracyTest"
+                },
+                {
+                    "exclude-annotation": "android.platform.test.annotations.FlakyTest"
+                }
+            ]
+        }
     ]
 }
