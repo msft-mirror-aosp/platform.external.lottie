@@ -52,14 +52,14 @@ android_manifest_package_attribute = "\"com.airbnb.lottie\""
 genrule {
     name: "AddPackageAttributeToAndroidManifest",
     srcs: [
-        "lottie/src/main/AndroidManifest.xml"
+        "lottie/src/main/AndroidManifest.xml",
     ],
     out: [
         "lottie/src/main/AndroidManifestGen.xml",
     ],
-    cmd: "sed -E 's/<manifest>/<manifest package="
-    + android_manifest_package_attribute
-    + ">/g' $(in) > $(out)",
+    cmd: "sed -E 's/<manifest>/<manifest package=" +
+        android_manifest_package_attribute +
+        ">/g' $(in) > $(out)",
 }
 
 android_library {
@@ -78,7 +78,7 @@ android_library {
     ],
     manifest: ":AddPackageAttributeToAndroidManifest",
     sdk_version: "31",
-    min_sdk_version: "21",
+    min_sdk_version: "23",
     java_version: "1.8",
     optimize: {
         proguard_flags_files: ["proguard.flags"],
@@ -101,7 +101,7 @@ java_library {
         "androidx.compose.ui_ui",
     ],
     sdk_version: "current",
-    min_sdk_version: "21",
+    min_sdk_version: "23",
     kotlincflags: [
         "-Xjvm-default=all",
         "-Xopt-in=kotlin.RequiresOptIn",
