@@ -13,7 +13,7 @@ sealed interface LottieCompositionSpec {
      * Load an animation from res/raw.
      */
     @JvmInline
-    value class RawRes(@androidx.annotation.RawRes val resId: Int) : LottieCompositionSpec
+    value class RawRes(@param:androidx.annotation.RawRes val resId: Int) : LottieCompositionSpec
 
     /**
      * Load an animation from the internet. Lottie has a default network stack that will use
