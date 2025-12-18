@@ -161,14 +161,17 @@ private fun lottieTask(
                 val actualCacheKey = if (cacheKey == DefaultCacheKey) spec.fileName else cacheKey
                 when {
                     spec.fileName.endsWith("zip") -> LottieCompositionFactory.fromZipStream(
+                        context,
                         ZipInputStream(fis),
                         actualCacheKey,
                     )
                     spec.fileName.endsWith("tgs") -> LottieCompositionFactory.fromJsonInputStream(
+                        context,
                         GZIPInputStream(fis),
                         actualCacheKey,
                     )
                     else -> LottieCompositionFactory.fromJsonInputStream(
+                        context,
                         fis,
                         actualCacheKey,
                     )
@@ -184,7 +187,7 @@ private fun lottieTask(
         }
         is LottieCompositionSpec.JsonString -> {
             val jsonStringCacheKey = if (cacheKey == DefaultCacheKey) spec.jsonString.hashCode().toString() else cacheKey
-            LottieCompositionFactory.fromJsonString(spec.jsonString, jsonStringCacheKey)
+            LottieCompositionFactory.fromJsonString(context, spec.jsonString, jsonStringCacheKey)
         }
         is LottieCompositionSpec.ContentProvider -> {
             val fis = context.contentResolver.openInputStream(spec.uri)
