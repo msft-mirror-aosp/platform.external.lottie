@@ -15,6 +15,7 @@ third_party {
   identifier {
     type: "Git"
     value: "https://github.com/airbnb/lottie-android"
-    version: "v6.5.2"
+    version: "18ed2107792631385c4d8ea3f9a0c2668c29339e"
+    closest_version: "v6.5.2"
   }
 }
